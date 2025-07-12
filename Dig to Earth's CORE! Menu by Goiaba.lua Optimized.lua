@@ -20,7 +20,8 @@ local Window = Fluent:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "home" }),
+    OurWorld = Window:AddTab({ Title = "Our World", Icon = "globe-2" }),
+    VoidWorld = Window:AddTab({ Title = "Void World", Icon = "star" }),
     Movement = Window:AddTab({ Title = "Movement", Icon = "user" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
@@ -108,31 +109,31 @@ local function autoFire(tab, toggleName, desc, interval, eventName, argsFunc)
     })
 end
 
-local PetSection = Tabs.Main:AddSection("Pets")
+local PetSection = Tabs.OurWorld:AddSection("Pets")
 
 -- Pets
-createInput(Tabs.Main, "PetInput", "Pet Name", "Add a pet by name.\nExample: 'Star Cat'.\nUse the pet index to find out the names of pets.\nNormal pets only; gold and diamond only via crafting.", "Enter pet name.", "Star Cat")
-createButton(Tabs.Main, "Add Pet", function()
+createInput(Tabs.OurWorld, "PetInput", "Pet Name", "Add a pet by name.\nExample: 'Star Cat'.\nUse the pet index to find out the names of pets.\nNormal pets only; gold and diamond only via crafting.", "Enter pet name.", "Star Cat")
+createButton(Tabs.OurWorld, "Add Pet", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("PetCageEvent")
 end, function() return {Options.PetInput.Value} end)
 
-autoFire(Tabs.Main, "Auto Add Pet", "Add pet every 0s.", 0, function()
+autoFire(Tabs.OurWorld, "Auto Add Pet", "Add pet every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("PetCageEvent")
 end, function() return {Options.PetInput.Value} end)
 
-autoFire(Tabs.Main, "Craft Gold Pet", "Craft gold pet every 0.5s.", 0.5, function()
+autoFire(Tabs.OurWorld, "Craft Gold Pet", "Craft gold pet every 0.5s.", 0.5, function()
     return ReplicatedStorage:WaitForChild("PetRemotes",5):FindFirstChild("GoldPetCraftEvent")
 end, function() return {Options.PetInput.Value, 100} end)
 
-autoFire(Tabs.Main, "Craft Diamond Pet", "Craft diamond pet every 0.5s.", 0.5, function()
+autoFire(Tabs.OurWorld, "Craft Diamond Pet", "Craft diamond pet every 0.5s.", 0.5, function()
     return ReplicatedStorage:WaitForChild("PetRemotes",5):FindFirstChild("DiamondPetCraftEvent")
 end, function() return {"Gold " .. Options.PetInput.Value, 100} end)
 
-autoFire(Tabs.Main, "Craft Void Pet", "Craft void pet every 0.5s.", 0.5, function()
+autoFire(Tabs.OurWorld, "Craft Void Pet", "Craft void pet every 0.5s.", 0.5, function()
     return ReplicatedStorage:WaitForChild("PetRemotes",5):FindFirstChild("VoidPetCraftEvent")
 end, function() return {"Diamond " .. Options.PetInput.Value, 100} end)
 
-Tabs.Main:AddButton({
+Tabs.OurWorld:AddButton({
     Title = "Delete All Pets",
     Description = "Deletes all your pets automatically.",
     Callback = function()
@@ -161,15 +162,15 @@ Tabs.Main:AddButton({
     end
 })
 
-local CashSection = Tabs.Main:AddSection("Cash")
+local CashSection = Tabs.OurWorld:AddSection("Cash")
 
 -- Cash & Gems
-createInput(Tabs.Main, "CashInput", "Cash Amount", "It's not working as it should.", "Enter cash amount.", "1500", true)
-createButton(Tabs.Main, "Add Cash", function()
+createInput(Tabs.OurWorld, "CashInput", "Cash Amount", "It's not working as it should.", "Enter cash amount.", "1500", true)
+createButton(Tabs.OurWorld, "Add Cash", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("AddRewardEvent")
 end, function() return {"Cash", tonumber(Options.CashInput.Value)} end)
 
-autoFire(Tabs.Main, "Auto Cash", "Auto add cash every 0s.", 0, function()
+autoFire(Tabs.OurWorld, "Auto Cash", "Auto add cash every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 end, function() return {"Blackhole1"} end)
 
@@ -180,7 +181,7 @@ local function claimAllCodes(tab, title, callback)
     })
 end
 
-claimAllCodes(Tabs.Main, "Claim All Codes", function()
+claimAllCodes(Tabs.OurWorld, "Claim All Codes", function()
     local codes = { "NEWBIE", "DOMINUSSS", "DIGGEM5000", "TROPHIES", "MONEYMONEYMONEY", "LUCKYWHEEL" }
     local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ClaimRedeemCode")
 
@@ -196,43 +197,43 @@ claimAllCodes(Tabs.Main, "Claim All Codes", function()
     })
 end)
 
-local GemsSection = Tabs.Main:AddSection("Gems")
+local GemsSection = Tabs.OurWorld:AddSection("Gems")
 
-createInput(Tabs.Main, "GemsInput", "Gems Amount", "It's not working as it should.", "Enter gems amount.", "1500", true)
-createButton(Tabs.Main, "Add Gems", function()
+createInput(Tabs.OurWorld, "GemsInput", "Gems Amount", "It's not working as it should.", "Enter gems amount.", "1500", true)
+createButton(Tabs.OurWorld, "Add Gems", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("AddRewardEvent")
 end, function() return {"Gems", tonumber(Options.GemsInput.Value)} end)
 
-autoFire(Tabs.Main, "Auto Gems", "Auto add gems every 0s.", 0, function()
+autoFire(Tabs.OurWorld, "Auto Gems", "Auto add gems every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 end, function() return {"Blackhole2"} end)
 
-local TierGemsSection = Tabs.Main:AddSection("Void Cash")
+local TierGemsSection = Tabs.VoidWorld:AddSection("Void Cash")
 
-autoFire(Tabs.Main, "Auto Void Cash", "Auto add void cash every 0s.", 0, function()
+autoFire(Tabs.VoidWorld, "Auto Void Cash", "Auto add void cash every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("DigEvent")
 end, function() return {"hello"} end)
 
--- autoFire(Tabs.Main, "Auto Tier1 Gems", "Auto add tier1 gems every 0s.", 0, function()
+-- autoFire(Tabs.OurWorld, "Auto Tier1 Gems", "Auto add tier1 gems every 0s.", 0, function()
 --     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 -- end, function() return {"GemTier1"} end)
 
-createInput(Tabs.Main, "Tier2Input", "Tier2 Gems Amount", "Amount of T2 Gems to receive.\nYou automatically receive 9k t1 gems because of the\nexchange system that resets the gems.", "Enter T2 Gems amount.", "1500", true)
-createButton(Tabs.Main, "Add Tier2 Gems", function()
+createInput(Tabs.VoidWorld, "Tier2Input", "Tier2 Gems Amount", "Amount of T2 Gems to receive.\nYou automatically receive 9k t1 gems because of the\nexchange system that resets the gems.", "Enter T2 Gems amount.", "1500", true)
+createButton(Tabs.VoidWorld, "Add Tier2 Gems", function()
     return ReplicatedStorage:WaitForChild("VoidWorld"):WaitForChild("Remotes"):FindFirstChild("GemsChangerEvent")
 end, function()
     return {9999, tonumber(Options.Tier2Input.Value), "GetT2Gems"}
 end)
 
-createInput(Tabs.Main, "Tier3Input", "Tier3 Gems Amount", "Amount of T3 Gems to receive.\nYou automatically receive 9k t2 gems because of the\nexchange system that resets the gems.", "Enter T3 Gems amount.", "1500", true)
-createButton(Tabs.Main, "Add Tier3 Gems", function()
+createInput(Tabs.VoidWorld, "Tier3Input", "Tier3 Gems Amount", "Amount of T3 Gems to receive.\nYou automatically receive 9k t2 gems because of the\nexchange system that resets the gems.", "Enter T3 Gems amount.", "1500", true)
+createButton(Tabs.VoidWorld, "Add Tier3 Gems", function()
     return ReplicatedStorage:WaitForChild("VoidWorld"):WaitForChild("Remotes"):FindFirstChild("GemsChangerEvent")
 end, function()
     return {9999, tonumber(Options.Tier3Input.Value), "GetT3Gems"}
 end)
 
-createInput(Tabs.Main, "Tier4Input", "Tier4 Gems Amount", "Amount of T4 Gems to receive.\nYou automatically receive 9k t3 gems because of the\nexchange system that resets the gems.", "Enter T4 Gems amount.", "1500", true)
-createButton(Tabs.Main, "Add Tier4 Gems", function()
+createInput(Tabs.VoidWorld, "Tier4Input", "Tier4 Gems Amount", "Amount of T4 Gems to receive.\nYou automatically receive 9k t3 gems because of the\nexchange system that resets the gems.", "Enter T4 Gems amount.", "1500", true)
+createButton(Tabs.VoidWorld, "Add Tier4 Gems", function()
     return ReplicatedStorage:WaitForChild("VoidWorld"):WaitForChild("Remotes"):FindFirstChild("GemsChangerEvent")
 end, function()
     return {9999, tonumber(Options.Tier4Input.Value), "GetT4Gems"}
@@ -242,16 +243,16 @@ local voidWorldCoords = {
     VoidWorld = Vector3.new(7, -902, 2)
 }
 
-autoFire(Tabs.Main, "Auto Shards", "Teleport every 12s to shards\nTP every 12 seconds, as the game does not accept winnings in less time.", 12, nil, function()
+autoFire(Tabs.VoidWorld, "Auto Shards", "Teleport every 12s to shards\nTP every 12 seconds, as the game does not accept winnings in less time.", 12, nil, function()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
     hrp.CFrame = CFrame.new(voidWorldCoords.VoidWorld)
     return {}
 end)
 
-local GemsSection = Tabs.Main:AddSection("Gold")
+local GemsSection = Tabs.OurWorld:AddSection("Gold")
 
-autoFire(Tabs.Main, "Auto Gold", "Auto add gold every 0s.", 0, function()
+autoFire(Tabs.OurWorld, "Auto Gold", "Auto add gold every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 end, function()
     local objects = {
@@ -271,20 +272,20 @@ end, function()
     return {} -- Obrigatório retornar algo pro autoFire, mas vazio
 end)
 
-local SpinsSection = Tabs.Main:AddSection("Spins")
+local SpinsSection = Tabs.OurWorld:AddSection("Spins")
 
 -- Spins
-createInput(Tabs.Main, "SpinInput", "Spin Amount", "It's not working as it should.", "Enter spin amount.", "10", true)
-createButton(Tabs.Main, "Add Spins", function()
+createInput(Tabs.OurWorld, "SpinInput", "Spin Amount", "It's not working as it should.", "Enter spin amount.", "10", true)
+createButton(Tabs.OurWorld, "Add Spins", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("AddRewardEvent")
 end, function() return {"Spins", tonumber(Options.SpinInput.Value)} end)
 
-createInput(Tabs.Main, "SpinValueInput", "Spin Value", "(Each reward on the roulette has a specific number from 1 to 10.\nJust type the corresponding number to receive the reward.\nExample: 8 (you earn 10 times the money you currently have))", "Enter spin value.", "2", true)
-createButton(Tabs.Main, "Spin", function()
+createInput(Tabs.OurWorld, "SpinValueInput", "Spin Value", "(Each reward on the roulette has a specific number from 1 to 10.\nJust type the corresponding number to receive the reward.\nExample: 8 (you earn 10 times the money you currently have))", "Enter spin value.", "2", true)
+createButton(Tabs.OurWorld, "Spin", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("SpinPrizeEvent")
 end, function() return {tonumber(Options.SpinValueInput.Value)} end)
 
-local WinsSection = Tabs.Main:AddSection("Wins")
+local WinsSection = Tabs.OurWorld:AddSection("Wins")
 
 -- Wins
 local worlds = {"World1","World2","World3","World4","World5","World6","World7","World8","World9","World10", "World11", "World12", "World13", "World14", "World15"}
@@ -307,7 +308,7 @@ local worldCoords = {
 }
 
 local selectedWorld = "World1"
-local dropdown = Tabs.Main:AddDropdown("WorldDropdown", {
+local dropdown = Tabs.OurWorld:AddDropdown("WorldDropdown", {
     Title = "World teleport",
     Description = "Teleport to a world.",
     Values = worlds,
@@ -330,14 +331,14 @@ dropdown:OnChanged(function(value)
     end
 end)
 
-autoFire(Tabs.Main, "Auto Teleport Wins", "Teleport every 12s to win\nTP every 12 seconds, as the game does not accept winnings in less time.", 12, nil, function()
+autoFire(Tabs.OurWorld, "Auto Teleport Wins", "Teleport every 12s to win\nTP every 12 seconds, as the game does not accept winnings in less time.", 12, nil, function()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
     hrp.CFrame = CFrame.new(worldCoords[selectedWorld])
     return {}
 end)
 
-autoFire(Tabs.Main, "Auto Wins", "Auto add wins every 0s.", 0, function()
+autoFire(Tabs.OurWorld, "Auto Wins", "Auto add wins every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 end, function() return {"Cup15"} end)
 
