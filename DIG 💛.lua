@@ -316,7 +316,7 @@ end
 
 -- Dropdown: mostra o nome visual (ObjectText) e envia o nome interno
 Tabs.Main:AddDropdown("CharmBuyDropdown", {
-    Title = "Select Charm",
+    Title = "Buy Charm",
     Description = "Select and buy a charm.",
     Values = charmDisplayNames,
     Default = "Select Charm",
