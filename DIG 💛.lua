@@ -531,7 +531,7 @@ end
 
 -- Dropdown no Fluent GUI
 local dropdown = Tabs.Main:AddDropdown("PurchaseableTP", {
-	Title = "Teleport to Purchaseable",
+	Title = "Teleport to Purchasable",
 	Description = "Teleport to a purchasable item.\nUse noclip in the 'Movement' tab if you get stuck.",
 	Values = itemNames,
 	Default = "Select Item",
