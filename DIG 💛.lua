@@ -109,7 +109,7 @@ local function autoFire(tab, toggleName, desc, interval, eventName, argsFunc)
     })
 end
 
-local AutoDigSection = Tabs.Main:AddSection("Dig")
+local AutoDigSection = Tabs.Main:AddSection("⛏️ ‣ Dig")
 
 -- Toggle: Auto Dig Rocks
 local runningAutoDig = false
@@ -237,7 +237,7 @@ Tabs.Main:AddToggle("AutoDig", {
 --     end
 -- })
 
-local SellAllItemsSection = Tabs.Main:AddSection("Sell")
+local SellAllItemsSection = Tabs.Main:AddSection("💰 ‣ Sell")
 
 Tabs.Main:AddButton({
     Title = "Sell All Items",
@@ -252,7 +252,36 @@ Tabs.Main:AddButton({
     end
 })
 
-local CharmsSection = Tabs.Main:AddSection("Charms")
+local ClaimAllJournalsSection = Tabs.Main:AddSection("🧾 ‣ Journal")
+
+Tabs.Main:AddButton({
+    Title = "Claim All Journals",
+    Description = "Claim all items from the journal.",
+    Callback = function()
+        local scroller = game:GetService("Players").LocalPlayer.PlayerGui.HUD.Frame.Journal.Scroller
+        local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Journal_Claim")
+
+        local count = 0
+
+        for _, item in ipairs(scroller:GetChildren()) do
+            if item:IsA("TextButton") or item:IsA("ImageButton") then
+                remote:FireServer(item.Name)
+                count += 1
+                task.wait(0) -- pequena pausa opcional
+            end
+        end
+
+        Fluent:Notify({
+            Title = "Rescued Journals",
+            Content = "Total: " .. count,
+            Duration = 5
+        })
+
+        print("[✅] Rescued Journals: " .. count)
+    end
+})
+
+local CharmsSection = Tabs.Main:AddSection("🧲 ‣ Charms")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DialogueRemotes = ReplicatedStorage:WaitForChild("DialogueRemotes")
@@ -316,10 +345,10 @@ end
 
 -- Dropdown: mostra o nome visual (ObjectText) e envia o nome interno
 Tabs.Main:AddDropdown("CharmBuyDropdown", {
-    Title = "Buy Charm",
-    Description = "Select and buy a charm.",
+    Title = "Buy Charms",
+    Description = "Select and buy a charms.\nIf it doesn't appear, go back to Fox Town and restart the menu.",
     Values = charmDisplayNames,
-    Default = "Select Charm",
+    Default = "Select Charms",
     Multi = false
 }):OnChanged(function(displayName)
     selectedCharm = charmDisplayToInternal[displayName]
@@ -327,7 +356,6 @@ Tabs.Main:AddDropdown("CharmBuyDropdown", {
         buyCharm(selectedCharm)
     end
 end)
-
 
 -- Botão para repetir a compra
 Tabs.Main:AddButton({
@@ -346,7 +374,7 @@ Tabs.Main:AddButton({
     end
 })
 
-local QuestsSection = Tabs.Main:AddSection("Quests")
+local QuestsSection = Tabs.Main:AddSection("🍕 ‣ Quests")
 
 local runningPenguinQuest = false
 Tabs.Main:AddToggle("AutoPenguinPizzaQuest", {
@@ -390,7 +418,7 @@ Tabs.Main:AddToggle("AutoPenguinPizzaQuest", {
     end
 })
 
-local Teleport1Section = Tabs.Main:AddSection("Teleport")
+local Teleport1Section = Tabs.Main:AddSection("🌀 ‣ Teleport")
 
 Tabs.Main:AddButton({
     Title = "Teleport to Enchantment Altar",
@@ -402,8 +430,55 @@ Tabs.Main:AddButton({
     end
 })
 
-local TeleportFolder = workspace:WaitForChild("Spawns"):WaitForChild("TeleportSpawns")
+Tabs.Main:AddButton({
+    Title = "Teleport to Meteor",
+    Description = "",
+    Callback = function()
+        local meteor = workspace:FindFirstChild("Active") and workspace.Active:FindFirstChild("ActiveMeteor")
+        if meteor and meteor:IsA("Model") and meteor.PrimaryPart then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = meteor.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            Fluent:Notify({
+                Title = "Teleport",
+                Content = "Teleported to Meteor.",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Error",
+                Content = "Meteor not found.",
+                Duration = 3
+            })
+        end
+    end
+})
 
+Tabs.Main:AddButton({
+    Title = "Teleport to Traveling Merchant",
+    Description = "Teleport to the Traveling Merchant NPC.",
+    Callback = function()
+        local merchant = workspace.World.NPCs:FindFirstChild("Merchant Cart")
+        if merchant and merchant:FindFirstChild("Traveling Merchant") and merchant["Traveling Merchant"].PrimaryPart then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = merchant["Traveling Merchant"].PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            Fluent:Notify({
+                Title = "Teleport",
+                Content = "Teleported to Traveling Merchant.",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Error",
+                Content = "Traveling Merchant not found.",
+                Duration = 3
+            })
+        end
+    end
+})
+
+local TeleportFolder = workspace:WaitForChild("Spawns"):WaitForChild("TeleportSpawns")
 -- Coletar os nomes e posições das parts
 local teleportNames = {}
 local teleportCoords = {}
@@ -472,49 +547,57 @@ dropdown:OnChanged(function(selected)
 	end
 end)
 
-local bossesFolder = game:GetService("ReplicatedStorage").Resources.Gameplay.Bosses
+local bossNames = {
+    "Dire Wolf",
+    "Fuzzball",
+    "Basilisk",
+    "King Crab",
+    "Molten Monstrosity",
+    "Candlelight Phantom",
+    "Giant Spider"
+}
 
--- workspace.Spawns.TeleportSpawns["Boss Arena (Molten Monstrosity)"]
-
-local bossNames = {}
-local bossPositions = {}
-
--- for _, boss in ipairs(bossesFolder:GetChildren()) do
---     if boss:IsA("Model") and boss.PrimaryPart then
---         table.insert(bossNames, boss.Name)
---         bossPositions[boss.Name] = boss.PrimaryPart.Position
---     end
--- end
-
-local dropdown = Tabs.Main:AddDropdown("BossTP", {
-    Title = "Teleport to Boss >>> COMING SOON <<<",
-    Description = "Teleport to any boss model.",
+Tabs.Main:AddDropdown("BossesTP", {
+    Title = "Teleport to Boss",
+    Description = "Teleport to any boss",
     Values = bossNames,
+    Multi = false,
     Default = "Select Boss",
-    Multi = false
+    Callback = function(selected)
+        local ambience = workspace.World.Zones._Ambience
+        for _, obj in pairs(ambience:GetChildren()) do
+            if obj.Name:sub(1, #selected) == selected then
+                local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.CFrame = obj.CFrame + Vector3.new(0, 0, 0)
+                end
+                break
+            end
+        end
+    end
 })
 
+
+local runningBossHit = false
 Tabs.Main:AddToggle("BossHit", {
-    Title = "Boss Hit >>> COMING SOON <<<",
+    Title = "Boss Hit",
     Description = "Hit the boss with a shovel.",
     Default = false,
-    Callback = function(v)
+    Callback = function(state)
+        runningBossHit = state
+        if state then
+            task.spawn(function()
+                while runningBossHit do
+                    local args = {
+                        true
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Dig_Boss_OnHit"):FireServer(unpack(args))
+                    task.wait(0)
+                end
+            end)
+        end
     end
 })
-
--- workspace.World.Zones._Ambience["Giant Spider_791e8faa-440e-498b-b82f-a742f2a34f3b"]
--- workspace.World.Zones._Ambience["Candlelight Phantom_57affb02-5ab9-4e6f-99da-7c0c267ec633"]
--- workspace.World.Zones._Ambience["Candlelight Phantom_389b7294-82be-43d2-ad15-013cbbfd50ea"]
--- 4110, 226, -729
-
-dropdown:OnChanged(function(selected)
-    local pos = bossPositions[selected]
-    if pos then
-        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local hrp = char:WaitForChild("HumanoidRootPart")
-        hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
-    end
-end)
 
 -- Dropdown: Teleport to NPCs
 local npcsFolder = workspace:WaitForChild("World"):WaitForChild("NPCs")
