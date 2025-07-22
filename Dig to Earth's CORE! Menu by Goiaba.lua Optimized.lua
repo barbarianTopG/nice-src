@@ -109,7 +109,7 @@ local function autoFire(tab, toggleName, desc, interval, eventName, argsFunc)
     })
 end
 
-local PetSection = Tabs.OurWorld:AddSection("Pets")
+local PetSection = Tabs.OurWorld:AddSection("🐶 ‣ Pets")
 
 -- Pets
 createInput(Tabs.OurWorld, "PetInput", "Pet Name", "Add a pet by name.\nExample: 'Star Cat'.\nUse the pet index to find out the names of pets.\nNormal pets only; gold and diamond only via crafting.", "Enter pet name.", "Star Cat")
@@ -162,7 +162,7 @@ Tabs.OurWorld:AddButton({
     end
 })
 
-local CashSection = Tabs.OurWorld:AddSection("Cash")
+local CashSection = Tabs.OurWorld:AddSection("💵 ‣ Cash")
 
 -- Cash & Gems
 createInput(Tabs.OurWorld, "CashInput", "Cash Amount", "It's not working as it should.", "Enter cash amount.", "1500", true)
@@ -197,7 +197,7 @@ claimAllCodes(Tabs.OurWorld, "Claim All Codes", function()
     })
 end)
 
-local GemsSection = Tabs.OurWorld:AddSection("Gems")
+local GemsSection = Tabs.OurWorld:AddSection("💎 ‣ Gems")
 
 createInput(Tabs.OurWorld, "GemsInput", "Gems Amount", "It's not working as it should.", "Enter gems amount.", "1500", true)
 createButton(Tabs.OurWorld, "Add Gems", function()
@@ -208,7 +208,7 @@ autoFire(Tabs.OurWorld, "Auto Gems", "Auto add gems every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
 end, function() return {"Blackhole2"} end)
 
-local TierGemsSection = Tabs.VoidWorld:AddSection("Void Cash")
+local TierGemsSection = Tabs.VoidWorld:AddSection("🕳️ ‣ Void Cash")
 
 autoFire(Tabs.VoidWorld, "Auto Void Cash", "Auto add void cash every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("DigEvent")
@@ -250,7 +250,7 @@ autoFire(Tabs.VoidWorld, "Auto Shards", "Teleport every 12s to shards\nTP every 
     return {}
 end)
 
-local GemsSection = Tabs.OurWorld:AddSection("Gold")
+local GemsSection = Tabs.OurWorld:AddSection("🥇 ‣ Gold")
 
 autoFire(Tabs.OurWorld, "Auto Gold", "Auto add gold every 0s.", 0, function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("TreasureEvent")
@@ -272,7 +272,7 @@ end, function()
     return {} -- Obrigatório retornar algo pro autoFire, mas vazio
 end)
 
-local SpinsSection = Tabs.OurWorld:AddSection("Spins")
+local SpinsSection = Tabs.OurWorld:AddSection("🌀 ‣ Spins")
 
 -- Spins
 createInput(Tabs.OurWorld, "SpinInput", "Spin Amount", "It's not working as it should.", "Enter spin amount.", "10", true)
@@ -285,7 +285,7 @@ createButton(Tabs.OurWorld, "Spin", function()
     return ReplicatedStorage:WaitForChild("Remotes",5):FindFirstChild("SpinPrizeEvent")
 end, function() return {tonumber(Options.SpinValueInput.Value)} end)
 
-local WinsSection = Tabs.OurWorld:AddSection("Wins")
+local WinsSection = Tabs.OurWorld:AddSection("🏆 ‣ Wins")
 
 -- Wins
 local worlds = {"World1","World2","World3","World4","World5","World6","World7","World8","World9","World10", "World11", "World12", "World13", "World14", "World15"}
