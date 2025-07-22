@@ -22,6 +22,7 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "shovel" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "navigation" }),
     Movement = Window:AddTab({ Title = "Movement", Icon = "user" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
@@ -418,9 +419,9 @@ Tabs.Main:AddToggle("AutoPenguinPizzaQuest", {
     end
 })
 
-local Teleport1Section = Tabs.Main:AddSection("🌀 ‣ Teleport")
+local Teleport1Section = Tabs.Teleport:AddSection("🌀 ‣ Teleport")
 
-Tabs.Main:AddButton({
+Tabs.Teleport:AddButton({
     Title = "Teleport to Enchantment Altar",
     Description = "",
     Callback = function()
@@ -430,7 +431,7 @@ Tabs.Main:AddButton({
     end
 })
 
-Tabs.Main:AddButton({
+Tabs.Teleport:AddButton({
     Title = "Teleport to Meteor",
     Description = "",
     Callback = function()
@@ -454,9 +455,9 @@ Tabs.Main:AddButton({
     end
 })
 
-Tabs.Main:AddButton({
+Tabs.Teleport:AddButton({
     Title = "Teleport to Traveling Merchant",
-    Description = "Teleport to the Traveling Merchant NPC.",
+    Description = "",
     Callback = function()
         local merchant = workspace.World.NPCs:FindFirstChild("Merchant Cart")
         if merchant and merchant:FindFirstChild("Traveling Merchant") and merchant["Traveling Merchant"].PrimaryPart then
@@ -491,7 +492,7 @@ for _, part in ipairs(TeleportFolder:GetChildren()) do
 end
 
 -- Criar o dropdown
-local dropdown = Tabs.Main:AddDropdown("SpawnsDropdown", {
+local dropdown = Tabs.Teleport:AddDropdown("SpawnsDropdown", {
     Title = "Teleport Spawns",
     Description = "Teleport to any available spawn location.",
     Values = teleportNames,
@@ -530,7 +531,7 @@ for _, model in ipairs(purchaseablesFolder:GetChildren()) do
 end
 
 -- Dropdown no Fluent GUI
-local dropdown = Tabs.Main:AddDropdown("PurchaseableTP", {
+local dropdown = Tabs.Teleport:AddDropdown("PurchaseableTP", {
 	Title = "Teleport to Purchasable",
 	Description = "Teleport to a purchasable item.\nUse noclip in the 'Movement' tab if you get stuck.",
 	Values = itemNames,
@@ -557,7 +558,7 @@ local bossNames = {
     "Giant Spider"
 }
 
-Tabs.Main:AddDropdown("BossesTP", {
+Tabs.Teleport:AddDropdown("BossesTP", {
     Title = "Teleport to Boss",
     Description = "Teleport to any boss",
     Values = bossNames,
@@ -579,7 +580,7 @@ Tabs.Main:AddDropdown("BossesTP", {
 
 
 local runningBossHit = false
-Tabs.Main:AddToggle("BossHit", {
+Tabs.Teleport:AddToggle("BossHit", {
     Title = "Boss Hit",
     Description = "Hit the boss with a shovel.",
     Default = false,
@@ -613,7 +614,7 @@ for _, npc in ipairs(npcsFolder:GetChildren()) do
     end
 end
 
-local dropdown = Tabs.Main:AddDropdown("NPCTP", {
+local dropdown = Tabs.Teleport:AddDropdown("NPCTP", {
     Title = "Teleport to NPC",
     Description = "Teleport to any NPC in the world.",
     Values = npcNames,
