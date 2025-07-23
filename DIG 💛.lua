@@ -253,6 +253,47 @@ Tabs.Main:AddButton({
     end
 })
 
+-- Auto Sell All Items
+local autoSellAll = false
+local autoSellInterval = 10
+
+Tabs.Main:AddToggle("AutoSellAll", {
+    Title = "Auto Sell All",
+    Description = "Automatically sells all items every X seconds.",
+    Default = false,
+    Callback = function(state)
+        autoSellAll = state
+        if state then
+            task.spawn(function()
+                while autoSellAll do
+                    local args = {
+                        workspace:WaitForChild("World"):WaitForChild("NPCs"):WaitForChild("Rocky")
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("SellAllItems"):FireServer(unpack(args))
+                    Fluent:Notify({
+                        Title = "Auto Sell",
+                        Content = "All items sold.",
+                        Duration = 3
+                    })
+                    task.wait(autoSellInterval)
+                end
+            end)
+        end
+    end
+})
+
+local sellAllSlider = Tabs.Main:AddSlider("AutoSellAllInterval", {
+    Title = "Auto Sell All (s)",
+    Description = "Set the interval (in seconds) for auto sell all.",
+    Default = 10,
+    Min = 0,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(v)
+        autoSellInterval = v
+    end
+})
+
 local ClaimAllJournalsSection = Tabs.Main:AddSection("🧾 ‣ Journal")
 
 Tabs.Main:AddButton({
