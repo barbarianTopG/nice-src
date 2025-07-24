@@ -262,7 +262,7 @@ Tabs.Main:AddSlider("ShakeTimeSlider", {
     Description = "How long to shake after collecting.",
     Default = 10,
     Min = 0,
-    Max = 100,
+    Max = 500,
     Rounding = 0,
     Callback = function(value)
         shakeAutoFarmTime = value
@@ -459,7 +459,7 @@ Tabs.Main:AddSlider("ShakeTimeSlider", {
     Description = "How long the auto shake.",
     Default = 10,
     Min = 1,
-    Max = 60,
+    Max = 500,
     Rounding = 0,
     Callback = function(value)
         shakeTime = value
