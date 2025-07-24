@@ -262,7 +262,7 @@ Tabs.Main:AddSlider("ShakeTimeSlider", {
     Description = "How long to shake after collecting.",
     Default = 10,
     Min = 0,
-    Max = 60,
+    Max = 100,
     Rounding = 0,
     Callback = function(value)
         shakeAutoFarmTime = value
@@ -1509,8 +1509,8 @@ if depositMarkers then
     end
 end
 
-local teleportStep = 10 -- default step size
-local teleportStepDelay = 1 -- default delay in seconds
+local teleportStep = 1 -- default step size
+local teleportStepDelay = 0 -- default delay in seconds
 local teleportHeight = 200 -- how high to go up before moving horizontally
 
 Tabs.Teleport:AddDropdown("DepositMarkerDropdown", {
@@ -1575,7 +1575,7 @@ Tabs.Teleport:AddDropdown("DepositMarkerDropdown", {
 Tabs.Teleport:AddSlider("TeleportStepDelaySlider", {
     Title = "Teleport Step Delay (seconds)",
     Description = "Set the delay (seconds) between each teleport step.",
-    Default = 1,
+    Default = 0,
     Min = 0,
     Max = 5,
     Rounding = 2,
@@ -1587,7 +1587,7 @@ Tabs.Teleport:AddSlider("TeleportStepDelaySlider", {
 Tabs.Teleport:AddSlider("DepositMarkerStepSlider", {
     Title = "Teleport Steps",
     Description = "Adjust the step size (studs) for teleporting to deposit markers.",
-    Default = 10,
+    Default = 1,
     Min = 1,
     Max = 50,
     Rounding = 0,
