@@ -1,6 +1,6 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/contadeep/9M0AK5CRI/refs/heads/main/Fluent.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/contadeep/9M0AK5CRI/refs/heads/main/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/contadeep/9M0AK5CRI/refs/heads/main/Addons/InterfaceManager.lua"))()
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
