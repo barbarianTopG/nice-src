@@ -319,7 +319,7 @@ Tabs.Main:AddToggle("AutoHoldClickCollect", {
 
 Tabs.Main:AddToggle("SellAfterShakeToggle", {
     Title = "Sell After Shake",
-    Description = "Enable to sell after pan shaking ends.",
+    Description = "Sell All after pan shaking ends.",
     Default = false,
     Callback = function(state)
         sellAfterShake = state
