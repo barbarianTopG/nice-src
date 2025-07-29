@@ -169,6 +169,31 @@ Tabs.Main:AddButton({
     end
 })
 
+local function getClosestMerchant()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
+    local merchants = {
+        workspace:FindFirstChild("NPCs") and workspace.NPCs:FindFirstChild("StarterTown") and workspace.NPCs.StarterTown:FindFirstChild("Merchant"),
+        workspace:FindFirstChild("NPCs") and workspace.NPCs:FindFirstChild("RiverTown") and workspace.NPCs.RiverTown:FindFirstChild("Merchant"),
+        workspace:FindFirstChild("NPCs") and workspace.NPCs:FindFirstChild("Cavern") and workspace.NPCs.Cavern:FindFirstChild("Merchant"),
+    }
+
+    local closest, minDist = nil, math.huge
+    for _, merchant in ipairs(merchants) do
+        if merchant and merchant:FindFirstChild("HumanoidRootPart") then
+            local dist = (hrp.Position - merchant.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closest = merchant
+            end
+        end
+    end
+    return closest
+end
+
+local sellAfterShake = false
 Tabs.Main:AddToggle("AutoHoldClickCollect", {
     Title = "Auto Farm",
     Description = "",
@@ -239,9 +264,65 @@ Tabs.Main:AddToggle("AutoHoldClickCollect", {
 
                         task.wait(0)
                     end
+
+                    -- 🟡 Venda após shake (opcional)
+                    if sellAfterShake and holdingPanAutoFarm then
+                        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        local merchant = getClosestMerchant()
+
+                        if merchant and merchant:FindFirstChild("HumanoidRootPart") then
+                            local dest = merchant.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+                            local step = sellAllStep or 10
+                            local pos = hrp.Position
+                            local direction = (dest - pos).Unit
+                            local distance = (dest - pos).Magnitude
+
+                            -- Ir até o mercador
+                            while holdingPanAutoFarm and distance > step do
+                                pos = pos + direction * step
+                                hrp.CFrame = CFrame.new(pos, dest)
+                                task.wait(0.05)
+                                distance = (dest - pos).Magnitude
+                            end
+
+                            hrp.CFrame = CFrame.new(dest)
+                            task.wait(0.3)
+
+                            -- Vender
+                            pcall(function()
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Shop"):WaitForChild("SellAll"):InvokeServer()
+                            end)
+
+                            -- Voltar para a areia
+                            if savedPositionDC then
+                                local directionBack = (savedPositionDC.Position - hrp.Position).Unit
+                                local distanceBack = (savedPositionDC.Position - hrp.Position).Magnitude
+                                local posBack = hrp.Position
+
+                                while holdingPanAutoFarm and distanceBack > step do
+                                    posBack = posBack + directionBack * step
+                                    hrp.CFrame = CFrame.new(posBack, savedPositionDC.Position)
+                                    task.wait(0.05)
+                                    distanceBack = (savedPositionDC.Position - posBack).Magnitude
+                                end
+
+                                hrp.CFrame = savedPositionDC
+                            end
+                        end
+                        task.wait(1)
+                    end
                 end
             end)
         end
+    end
+})
+
+Tabs.Main:AddToggle("SellAfterShakeToggle", {
+    Title = "Sell After Shake",
+    Description = "Enable to sell after pan shaking ends.",
+    Default = false,
+    Callback = function(state)
+        sellAfterShake = state
     end
 })
 
@@ -358,6 +439,96 @@ Tabs.Main:AddSlider("SellAllStepSlider", {
     Rounding = 0,
     Callback = function(value)
         sellAllStep = value
+    end
+})
+
+local autoSellAllRunning = false
+local autoSellAllInterval = 10 -- tempo padrão entre cada venda
+Tabs.Main:AddToggle("AutoSellAll", {
+    Title = "Auto Sell All",
+    Description = "Auto Sells all items in inventory to the nearest merchant.",
+    Default = false,
+    Callback = function(state)
+        autoSellAllRunning = state
+
+        if state then
+            task.spawn(function()
+                while autoSellAllRunning do
+                    -- Pausa o Auto Farm
+                    local wasFarming = holdingPanAutoFarm
+                    holdingPanAutoFarm = false
+
+                    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    -- Salva posição
+                    local originalCFrame = hrp.CFrame
+                    local merchant = getClosestMerchant()
+
+                    if merchant and merchant:FindFirstChild("HumanoidRootPart") then
+                        local dest = merchant.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+                        local step = sellAllStep
+                        local pos = hrp.Position
+                        local direction = (dest - pos).Unit
+                        local distance = (dest - pos).Magnitude
+
+                        while autoSellAllRunning and distance > step do
+                            pos = pos + direction * step
+                            hrp.CFrame = CFrame.new(pos, dest)
+                            task.wait(0.05)
+                            distance = (dest - pos).Magnitude
+                        end
+
+                        if autoSellAllRunning then
+                            hrp.CFrame = CFrame.new(dest)
+                            task.wait(0.3)
+                            pcall(function()
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Shop"):WaitForChild("SellAll"):InvokeServer()
+                            end)
+                        end
+                    end
+
+                    -- Volta
+                    local dest = originalCFrame.Position
+                    local step = sellAllStep
+                    local pos = hrp.Position
+                    local direction = (dest - pos).Unit
+                    local distance = (dest - pos).Magnitude
+
+                    while autoSellAllRunning and distance > step do
+                        pos = pos + direction * step
+                        hrp.CFrame = CFrame.new(pos, dest)
+                        task.wait(0.05)
+                        distance = (dest - pos).Magnitude
+                    end
+
+                    if autoSellAllRunning then
+                        hrp.CFrame = originalCFrame
+
+                        -- Retoma o Auto Farm se estava ativo antes
+                        if wasFarming then
+                            holdingPanAutoFarm = true
+                        end
+
+                        task.wait(autoSellAllInterval)
+                    end
+                end
+            end)
+        end
+    end
+})
+
+
+Tabs.Main:AddSlider("SellAllIntervalSlider", {
+    Title = "Sell All (seconds)",
+    Description = "Time in seconds between each auto-sell.",
+    Default = 10,
+    Min = 1,
+    Max = 30,
+    Rounding = 0,
+    Callback = function(value)
+        autoSellAllInterval = value
     end
 })
 
