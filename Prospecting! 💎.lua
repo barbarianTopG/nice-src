@@ -22,6 +22,7 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {
     Main = Window:AddTab({ Title = "Pan", Icon = "chef-hat" }),
+    Items = Window:AddTab({ Title = "Items", Icon = "box" }),
     Buy = Window:AddTab({ Title = "Shopping", Icon = "shopping-cart" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "navigation" }),
     Movement = Window:AddTab({ Title = "Movement", Icon = "user" }),
@@ -204,30 +205,29 @@ Tabs.Main:AddToggle("AutoHoldClickCollect", {
         if state then
             task.spawn(function()
                 while holdingPanAutoFarm do
+                    local char = LocalPlayer.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    local tool = char and char:FindFirstChildOfClass("Tool")
+
                     -- Teleporta para o local de coleta
-                    if savedPositionDC and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = savedPositionDC
+                    if savedPositionDC and hrp then
+                        hrp.CFrame = savedPositionDC
                         task.wait(0.2)
                     end
 
                     -- Segura o clique
                     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
 
-                    local startTime = tick()
-                    while holdingPanAutoFarm and tick() - startTime <= holdTimeAutoFarm do
-                        local character = LocalPlayer.Character
-                        local tool = character and character:FindFirstChildOfClass("Tool")
-
-                        if tool then
-                            local collectScript = tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Collect")
-                            if collectScript then
-                                pcall(function()
-                                    collectScript:InvokeServer(1)
-                                end)
-                            end
+                    -- Executa Collect até encher a capacidade
+                    while holdingPanAutoFarm and tool and tool:GetAttribute("Fill") < LocalPlayer.Stats:GetAttribute("Capacity") do
+                        local collectScript = tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Collect")
+                        if collectScript then
+                            pcall(function()
+                                collectScript:InvokeServer(1)
+                            end)
                         end
-
                         task.wait(0)
+                        tool = char:FindFirstChildOfClass("Tool") -- Atualiza ref caso mude
                     end
 
                     -- Solta o clique
@@ -235,33 +235,28 @@ Tabs.Main:AddToggle("AutoHoldClickCollect", {
                     task.wait(1.5)
 
                     -- Teleporta para a água
-                    if savedPositionW and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = savedPositionW
+                    if savedPositionW and hrp then
+                        hrp.CFrame = savedPositionW
                         task.wait(0.2)
                     end
 
-                    local character = LocalPlayer.Character
-                    local tool = character and character:FindFirstChildOfClass("Tool")
+                    tool = char:FindFirstChildOfClass("Tool")
 
-                    -- Inicia o pan
+                    -- Inicia o Pan
                     if tool and tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Pan") then
                         pcall(function()
                             tool.Scripts.Pan:InvokeServer()
                         end)
                     end
 
-                    -- Faz o shake
-                    local shakeStart = tick()
-                    while holdingPanAutoFarm and (tick() - shakeStart <= shakeAutoFarmTime) do
-                        character = LocalPlayer.Character
-                        tool = character and character:FindFirstChildOfClass("Tool")
-
+                    -- Faz o Shake até acabar o panning
+                    while holdingPanAutoFarm and char:GetAttribute("Panning") do
+                        tool = char:FindFirstChildOfClass("Tool")
                         if tool and tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Shake") then
                             pcall(function()
                                 tool.Scripts.Shake:FireServer()
                             end)
                         end
-
                         task.wait(0)
                     end
 
@@ -311,6 +306,8 @@ Tabs.Main:AddToggle("AutoHoldClickCollect", {
                         end
                         task.wait(1)
                     end
+
+                    task.wait(1) -- pequena pausa antes do próximo ciclo
                 end
             end)
         end
@@ -326,29 +323,325 @@ Tabs.Main:AddToggle("SellAfterShakeToggle", {
     end
 })
 
-Tabs.Main:AddSlider("HoldAutoFarmTimeSlider", {
-    Title = "Hold Time (seconds)",
-    Description = "How long the mouse will be held down.",
-    Default = 10,
-    Min = 0,
-    Max = 100,
-    Rounding = 0,
-    Callback = function(value)
-        holdTimeAutoFarm = value
+-- Tabs.Main:AddSlider("HoldAutoFarmTimeSlider", {
+--     Title = "Hold Time (seconds)",
+--     Description = "How long the mouse will be held down.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 100,
+--     Rounding = 0,
+--     Callback = function(value)
+--         holdTimeAutoFarm = value
+--     end
+-- })
+
+-- Tabs.Main:AddSlider("ShakeTimeSlider", {
+--     Title = "Shake Time (seconds)",
+--     Description = "How long to shake after collecting.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 500,
+--     Rounding = 0,
+--     Callback = function(value)
+--         shakeAutoFarmTime = value
+--     end
+-- })
+
+local ItemsSection = Tabs.Items:AddSection("📦 ‣ Items")
+
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+local ToggleLockRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Inventory"):WaitForChild("ToggleLock")
+
+-- Lista de raridades disponíveis
+local rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" }
+
+-- Dropdown
+-- Variáveis auxiliares
+local selectedRarity = nil
+
+-- Monitorar mudanças no dropdown
+local Dropdown = Tabs.Items:AddDropdown("SelectRarity", {
+    Title = "Lock Rarity",
+    Values = rarities,
+    Multi = false,
+    Default = "Select Rarity",
+    Callback = function(rarity)
+        selectedRarity = rarity
+
+        local count = 0
+        for _, item in ipairs(Backpack:GetChildren()) do
+            if item:GetAttribute("Rarity") == rarity then
+                pcall(function()
+                    ToggleLockRemote:FireServer(item)
+                    count += 1
+                end)
+            end
+        end
+
+        Fluent:Notify({
+            Title = "Item Blocking",
+            Content = string.format("%d item(s) with rarity %s have been blocked.", count, rarity),
+            Duration = 4
+        })
     end
 })
 
-Tabs.Main:AddSlider("ShakeTimeSlider", {
-    Title = "Shake Time (seconds)",
-    Description = "How long to shake after collecting.",
-    Default = 10,
-    Min = 0,
-    Max = 500,
-    Rounding = 0,
-    Callback = function(value)
-        shakeAutoFarmTime = value
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+local ToggleLockRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Inventory"):WaitForChild("ToggleLock")
+
+-- Lista de raridades disponíveis
+local rarities1 = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" }
+
+-- Guardar as raridades selecionadas no MultiDropdown
+local selectedRarities = {}
+
+-- MultiDropdown de raridades
+local MultiDropdown = Tabs.Items:AddDropdown("SelectRarity", {
+    Title = "Auto Lock Item",
+    Description = "",
+    Values = rarities1,
+    Multi = true,
+    Default = {},
+})
+
+-- Atualiza as raridades selecionadas
+MultiDropdown:OnChanged(function(selectedTable)
+    selectedRarities = {} -- limpa
+
+    for rarity, isSelected in pairs(selectedTable) do
+        if isSelected then
+            table.insert(selectedRarities, rarity)
+        end
+    end
+
+end)
+
+-- Toggle para auto lock de novos itens
+local autoLockEnabled = false
+
+Tabs.Items:AddToggle("AutoLockToggle", {
+    Title = "Auto Lock",
+    Description = "Auto lock items with the selected rarity when they appear.",
+    Default = false,
+    Callback = function(state)
+        autoLockEnabled = state
+
+        if state then
+            task.spawn(function()
+                while autoLockEnabled do
+                    for _, item in ipairs(Backpack:GetChildren()) do
+                        local itemRarity = item:GetAttribute("Rarity")
+                        if itemRarity and table.find(selectedRarities, itemRarity) and not item:GetAttribute("AlreadyLocked") then
+                            pcall(function()
+                                ToggleLockRemote:FireServer(item)
+                                item:SetAttribute("AlreadyLocked", true)
+                            end)
+                        end
+                    end
+                    task.wait(1)
+                end
+            end)
+        end
     end
 })
+
+Tabs.Items:AddButton({
+    Title = "Unlock All",
+    Description = "",
+    Callback = function()
+        local unlocked = 0
+        for _, item in ipairs(Backpack:GetChildren()) do
+            -- Verifica se é uma Tool e tem atributo "Rarity"
+            if item:IsA("Tool") and item:GetAttribute("Rarity") then
+                pcall(function()
+                    ToggleLockRemote:FireServer(item)
+                    item:SetAttribute("AlreadyLocked", nil)
+                    unlocked += 1
+                end)
+            end
+        end
+    end
+})
+
+-- Tabs.Main:AddSlider("HoldAutoFarmTimeSlider", {
+--     Title = "Hold Time (seconds)",
+--     Description = "How long the mouse will be held down.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 100,
+--     Rounding = 0,
+--     Callback = function(value)
+--         holdTimeAutoFarm = value
+--     end
+-- })
+
+-- Tabs.Main:AddSlider("ShakeTimeSlider", {
+--     Title = "Shake Time (seconds)",
+--     Description = "How long to shake after collecting.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 500,
+--     Rounding = 0,
+--     Callback = function(value)
+--         shakeAutoFarmTime = value
+--     end
+-- })
+
+-- Tabs.Main:AddToggle("AutoHoldClickCollect", {
+--     Title = "Auto Farm",
+--     Description = "",
+--     Default = false,
+--     Callback = function(state)
+--         holdingPanAutoFarm = state
+
+--         if state then
+--             task.spawn(function()
+--                 while holdingPanAutoFarm do
+--                     local char = LocalPlayer.Character
+--                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
+--                     local tool = char and char:FindFirstChildOfClass("Tool")
+
+--                     -- Teleporta para o local de coleta
+--                     if savedPositionDC and hrp then
+--                         hrp.CFrame = savedPositionDC
+--                         task.wait(0.2)
+--                     end
+
+--                     -- Segura o clique
+--                     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+
+--                     -- Executa Collect até encher a capacidade
+--                     while holdingPanAutoFarm and tool and tool:GetAttribute("Fill") < LocalPlayer.Stats:GetAttribute("Capacity") do
+--                         local collectScript = tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Collect")
+--                         if collectScript then
+--                             pcall(function()
+--                                 collectScript:InvokeServer(1)
+--                             end)
+--                         end
+--                         task.wait(0.1)
+--                         tool = char:FindFirstChildOfClass("Tool") -- Atualiza ref caso mude
+--                     end
+
+--                     -- Solta o clique
+--                     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+--                     task.wait(1.5)
+
+--                     -- Teleporta para a água
+--                     if savedPositionW and hrp then
+--                         hrp.CFrame = savedPositionW
+--                         task.wait(0.2)
+--                     end
+
+--                     tool = char:FindFirstChildOfClass("Tool")
+
+--                     -- Inicia o Pan
+--                     if tool and tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Pan") then
+--                         pcall(function()
+--                             tool.Scripts.Pan:InvokeServer()
+--                         end)
+--                     end
+
+--                     -- Faz o Shake até acabar o panning
+--                     while holdingPanAutoFarm and char:GetAttribute("Panning") do
+--                         tool = char:FindFirstChildOfClass("Tool")
+--                         if tool and tool:FindFirstChild("Scripts") and tool.Scripts:FindFirstChild("Shake") then
+--                             pcall(function()
+--                                 tool.Scripts.Shake:FireServer()
+--                             end)
+--                         end
+--                         task.wait(0)
+--                     end
+
+--                     -- 🟡 Venda após shake (opcional)
+--                     if sellAfterShake and holdingPanAutoFarm then
+--                         local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+--                         local merchant = getClosestMerchant()
+
+--                         if merchant and merchant:FindFirstChild("HumanoidRootPart") then
+--                             local dest = merchant.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+--                             local step = sellAllStep or 10
+--                             local pos = hrp.Position
+--                             local direction = (dest - pos).Unit
+--                             local distance = (dest - pos).Magnitude
+
+--                             -- Ir até o mercador
+--                             while holdingPanAutoFarm and distance > step do
+--                                 pos = pos + direction * step
+--                                 hrp.CFrame = CFrame.new(pos, dest)
+--                                 task.wait(0.05)
+--                                 distance = (dest - pos).Magnitude
+--                             end
+
+--                             hrp.CFrame = CFrame.new(dest)
+--                             task.wait(0.3)
+
+--                             -- Vender
+--                             pcall(function()
+--                                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Shop"):WaitForChild("SellAll"):InvokeServer()
+--                             end)
+
+--                             -- Voltar para a areia
+--                             if savedPositionDC then
+--                                 local directionBack = (savedPositionDC.Position - hrp.Position).Unit
+--                                 local distanceBack = (savedPositionDC.Position - hrp.Position).Magnitude
+--                                 local posBack = hrp.Position
+
+--                                 while holdingPanAutoFarm and distanceBack > step do
+--                                     posBack = posBack + directionBack * step
+--                                     hrp.CFrame = CFrame.new(posBack, savedPositionDC.Position)
+--                                     task.wait(0.05)
+--                                     distanceBack = (savedPositionDC.Position - posBack).Magnitude
+--                                 end
+
+--                                 hrp.CFrame = savedPositionDC
+--                             end
+--                         end
+--                         task.wait(1)
+--                     end
+
+--                     task.wait(1) -- pequena pausa antes do próximo ciclo
+--                 end
+--             end)
+--         end
+--     end
+-- })
+
+-- Tabs.Main:AddToggle("SellAfterShakeToggle", {
+--     Title = "Sell After Shake",
+--     Description = "Sell All after pan shaking ends.",
+--     Default = false,
+--     Callback = function(state)
+--         sellAfterShake = state
+--     end
+-- })
+
+-- Tabs.Main:AddSlider("HoldAutoFarmTimeSlider", {
+--     Title = "Hold Time (seconds)",
+--     Description = "How long the mouse will be held down.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 100,
+--     Rounding = 0,
+--     Callback = function(value)
+--         holdTimeAutoFarm = value
+--     end
+-- })
+
+-- Tabs.Main:AddSlider("ShakeTimeSlider", {
+--     Title = "Shake Time (seconds)",
+--     Description = "How long to shake after collecting.",
+--     Default = 10,
+--     Min = 0,
+--     Max = 500,
+--     Rounding = 0,
+--     Callback = function(value)
+--         shakeAutoFarmTime = value
+--     end
+-- })
 
 local sellAllSection = Tabs.Main:AddSection("💰 ‣ Sell")
 
